@@ -13,7 +13,7 @@ spring:
       hibernate:
 #        show_sql: true
         format_sql: true
-        default_batch_fetch_size: 1000  #??? ??
+        default_batch_fetch_size: 1000
   security:
     debug: true
 
@@ -23,8 +23,9 @@ logging:
     org.springframework.jdbc.datasource.DataSourceTransactionManager: DEBUG
     org.springframework.orm.jpa.JpaTransactionManager: DEBUG
     org.hibernate.resource.transaction: DEBUG
-    org.hibernate.SQL: DEBUG  # jpa hibernate? ???? sql? ??? ??? ????? ??
-    org.hibernate.type: TRACE # ???? ??? ??
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type: TRACE
+    root: DEBUG
 
 jwt:
   secret:
