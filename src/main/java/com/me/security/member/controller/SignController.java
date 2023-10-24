@@ -2,7 +2,10 @@ package com.me.security.member.controller;
 
 import com.me.security.member.dto.LoginRequest;
 import com.me.security.member.dto.LoginSuccessResponse;
+import com.me.security.member.dto.UserCreateRequest;
+import com.me.security.member.dto.UserCreateResponse;
 import com.me.security.member.service.SignService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,8 +19,13 @@ public class SignController {
 
     private final SignService signService;
 
-    @PostMapping("/login")
-    public LoginSuccessResponse login(@RequestBody LoginRequest request) {
+    @PostMapping("/signin")
+    public LoginSuccessResponse login(@Valid @RequestBody LoginRequest request) {
         return signService.login(request);
+    }
+
+    @PostMapping("/signup")
+    public UserCreateResponse signup(@Valid @RequestBody UserCreateRequest request) {
+        return signService.signup(request);
     }
 }

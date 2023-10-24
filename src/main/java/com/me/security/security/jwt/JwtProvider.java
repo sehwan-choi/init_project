@@ -1,33 +1,32 @@
 package com.me.security.security.jwt;
 
 import com.me.security.member.domain.Authority;
-import com.me.security.security.service.CustomUserDetailsService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.me.security.member.domain.UserAuthority;
+import com.me.security.security.service.TokenValidationService;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class JwtProvider {
+@Slf4j
+public class JwtProvider implements JwtService {
 
     private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
 
-    private static final String AUTHORIZATION_PREFIX_NAME = "BEARER ";
+    private static final String AUTHORIZATION_PREFIX_NAME = "bearer ";
 
     @Value("${jwt.secret.key}")
     private String salt;
@@ -35,9 +34,8 @@ public class JwtProvider {
     private Key secretKey;
 
     // 만료시간 : 1Hour
-    private final long exp = 1000L * 60 * 60;
-
-    private final CustomUserDetailsService userDetailsService;
+    @Value("${jwt.secret.expired}")
+    private long exp;
 
     @PostConstruct
     protected void init() {
@@ -45,12 +43,13 @@ public class JwtProvider {
     }
 
     // 토큰 생성
-    public String createToken(String account, List<Authority> roles) {
+    @Override
+    public String createToken(String account, Collection<Authority> roles) {
         Claims claims = Jwts.claims().setSubject(account);
         claims.put("roles", roles);
         Date date = new Date();
         Date expiredDate = new Date(date.getTime() + exp);
-        return Jwts.builder()
+        return AUTHORIZATION_PREFIX_NAME + Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(date)
                 .setExpiration(expiredDate)
@@ -58,37 +57,46 @@ public class JwtProvider {
                 .compact();
     }
 
-    // JWT에서 권한 정보 획득
-    // Spring Security 인증과정에서 권한확인을 위한 기능
-    public Authentication getAuthentication(String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getAccount(token));
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    @Override
+    public String getAccount(String token) {
+        String jwtToken = extractToken(token);
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(jwtToken)
+                .getBody()
+                .getSubject();
     }
 
-    private String getAccount(String token) {
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
-    }
-
-    public String resolveToken(HttpServletRequest request) {
+    private String resolveToken(HttpServletRequest request) {
         return request.getHeader(AUTHORIZATION_HEADER_NAME);
     }
 
+    @Override
     public boolean validateToken(String token) {
         try {
             String bearerToken;
-            if (!token.substring(0, AUTHORIZATION_PREFIX_NAME.length()).equalsIgnoreCase(AUTHORIZATION_PREFIX_NAME)) {
-                return false;
-            } else {
+            if (checkJwtPrefix(token)) {
                 bearerToken = extractToken(token);
+            } else {
+                return false;
             }
 
             return tokenIsExpired(bearerToken);
+        } catch (ExpiredJwtException e) {
+            log.error("Jwt Token Expired!", e);
+            return false;
         } catch (Exception e) {
+            log.error("Jwt Parsing Error", e);
             return false;
         }
     }
 
-    public String extractToken(String token) {
+    private boolean checkJwtPrefix(String token) {
+        return token.substring(0, AUTHORIZATION_PREFIX_NAME.length()).equalsIgnoreCase(AUTHORIZATION_PREFIX_NAME);
+    }
+
+    private String extractToken(String token) {
         return token.split(" ")[1].trim();
     }
 

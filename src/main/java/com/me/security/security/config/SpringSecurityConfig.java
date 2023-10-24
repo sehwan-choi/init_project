@@ -1,15 +1,21 @@
 package com.me.security.security.config;
 
-import com.me.security.security.filter.JwtAuthenticationFilter;
-import com.me.security.security.jwt.JwtProvider;
+import com.me.security.security.filter.TokenAuthenticationFilter;
+import com.me.security.security.provider.TokenAuthenticationProvider;
+import com.me.security.security.service.AccessAuthorizationService;
+import com.me.security.security.service.AuthenticationTokenVerifier;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -33,10 +39,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SpringSecurityConfig {
 
+    private static final String LOGIN_PROCESSING_URL = "/api/v1/sign/signin";
+
+    private static final String SIGN_UP_PROCESSING_URL = "/api/v1/sign/signup";
+
     @Value("${spring.security.debug:false}")
     boolean webSecurityDebug;
 
-    private final JwtProvider jwtProvider;
+
+    @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("jwtAuthenticationTokenVerifier"))
+    private AuthenticationTokenVerifier verifyService;
+
+    @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("userAuthorizationService"))
+    private AccessAuthorizationService authorizationService;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -62,22 +78,21 @@ public class SpringSecurityConfig {
                 )
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
                 .sessionManagement(manager ->
-                manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                        )
+                        manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 // 조건별로 요청 허용/제한 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
-                                // 회원가입과 로그인은 모두 승인
-                                .requestMatchers("/api/v1/sign/login").permitAll()
-                                // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저에게만 허용
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
-                                // /user 로 시작하는 요청은 USER 권한이 있는 유저에게만 허용
-                                .requestMatchers("/user/**").hasRole("USER")
-                                .anyRequest().permitAll())
-                // JWT 인증 필터 적용
-                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+                            // 회원가입과 로그인은 모두 승인
+                            .requestMatchers(LOGIN_PROCESSING_URL, SIGN_UP_PROCESSING_URL).permitAll()
+                            // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저에게만 허용
+//                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                            // /user 로 시작하는 요청은 USER 권한이 있는 유저에게만 허용
+//                                .requestMatchers("/user/**").hasRole("USER")
+                            .anyRequest().authenticated()
+                )
                 // 에러 핸들링
-                .exceptionHandling(authenticationManager -> authenticationManager
+                .exceptionHandling(manager -> manager
                         .authenticationEntryPoint(new AuthenticationEntryPoint() {
                             @Override
                             public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
@@ -98,7 +113,9 @@ public class SpringSecurityConfig {
                                 response.getWriter().write("권한이 없는 사용자입니다.");
                             }
                         })
-                );
+                )
+                .authenticationProvider(new TokenAuthenticationProvider(verifyService, authorizationService))
+                .apply(new TokenFilterConfigurer());
 
         return http.build();
     }
@@ -113,5 +130,15 @@ public class SpringSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    public static class TokenFilterConfigurer extends AbstractHttpConfigurer<TokenFilterConfigurer, HttpSecurity> {
+        @Override
+        public void configure(HttpSecurity http) {
+            AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+            http
+                    // JWT 인증 필터 적용
+                    .addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
+        }
     }
 }

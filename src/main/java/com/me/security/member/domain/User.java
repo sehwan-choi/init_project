@@ -1,16 +1,14 @@
 package com.me.security.member.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "user")
@@ -29,8 +27,13 @@ public class User {
 
     private String password;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Authority> roles = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
+
+    @Singular
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "user_authority", joinColumns = @JoinColumn(name = "user_id"))
+    private Set<UserAuthority> roles = new HashSet<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -38,9 +41,37 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public User(String name, String email, String password) {
+    private boolean blocked;
+
+    public User(String name, String email, String password, Set<Authority> roles) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.status = UserStatus.ACTIVE;
+        roles.forEach(this::addAuthority);
+        this.blocked = false;
+    }
+
+    public boolean isActive() {
+        return status.equals(UserStatus.ACTIVE);
+    }
+
+    public boolean isBlocked() {
+        return this.blocked;
+    }
+    public void addAuthority(Authority authority) {
+        if (authority != null) {
+            roles.add(new UserAuthority(authority, LocalDateTime.now()));
+        }
+    }
+
+    public List<Authority> getAuthorities() {
+        return this.getRoles().stream()
+                .map(UserAuthority::getAuthority)
+                .toList();
+    }
+
+    public void removeAuthority(Authority authority) {
+        this.roles.removeIf(f -> f.getAuthority().equals(authority));
     }
 }

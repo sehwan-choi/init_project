@@ -14,15 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserCommandService userCommandService;
-
     private final UserQueryService userQueryService;
-
-    @PostMapping
-    public SimpleResponse createUser(@RequestBody UserCreateRequest request) {
-        userCommandService.create(request);
-        return SimpleResponse.ok();
-    }
 
     @GetMapping("/{userId}")
     public UserFindResponse getUser(@PathVariable(name = "userId") Long userId) {

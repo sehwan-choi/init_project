@@ -1,5 +1,11 @@
 package com.me.security.member.dto;
 
-public record UserCreateRequest(String userName, String password, String email) {
+
+import jakarta.validation.constraints.NotNull;
+
+public record UserCreateRequest(
+        @NotNull String userName,
+        @NotNull String password,
+        @NotNull String email) {
 
 }
