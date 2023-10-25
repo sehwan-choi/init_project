@@ -8,14 +8,19 @@ spring:
     password: # password
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
-#        show_sql: true
+        #        show_sql: true
         format_sql: true
         default_batch_fetch_size: 1000
   security:
     debug: true
+  web:
+    resources:
+      add-mappings: false
+  mvc:
+    throw-exception-if-no-handler-found: true
 
 logging:
   level:
@@ -25,8 +30,12 @@ logging:
     org.hibernate.resource.transaction: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type: TRACE
-    root: DEBUG
+    com.me.security: TRACE # 전체로그 출력
+  #    com.me.security.mvc.filter: DEBUG  # API Request Response 출력
+  pattern:
+    console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} [%X{request_id:----}]%m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
 
 jwt:
   secret:
     key: # JWT Salt Key
+    expired: 3600000
