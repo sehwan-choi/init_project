@@ -1,6 +1,8 @@
 package com.me.security.member.exception;
 
-public class UserNotFoundException extends RuntimeException{
+import com.me.security.common.exception.ResourceNotFoundException;
+
+public class UserNotFoundException extends ResourceNotFoundException {
 
     private final String message;
 

@@ -4,6 +4,7 @@ import com.me.security.member.domain.User;
 import com.me.security.member.dto.UserFindResponse;
 import com.me.security.member.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,7 @@ public class UserController {
 
     private final UserQueryService userQueryService;
 
-    @GetMapping("/{userId}")
+    @GetMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public UserFindResponse getUser(@PathVariable(name = "userId") Long userId) {
         User user = userQueryService.findUserById(userId);
         return UserFindResponse.userToResponse(user);

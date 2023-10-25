@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -28,18 +29,19 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        MDC.put("request_id" , UUID.randomUUID().toString());
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
-        filterChain.doFilter(requestWrapper, responseWrapper);
 
+        MDC.put("request_id" , UUID.randomUUID().toString());
 
         log.debug("URI : " + request.getRequestURI());
         log.debug("Method : " + request.getMethod());
         printHeaders(request);
         printQueryParameters(request);
-
         printContentBody(requestWrapper.getContentAsByteArray(), "Request Body");
+
+        filterChain.doFilter(requestWrapper, responseWrapper);
+
         printContentBody(responseWrapper.getContentAsByteArray(), "Response Body");
 
         responseWrapper.copyBodyToResponse();

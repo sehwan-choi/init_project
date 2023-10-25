@@ -1,6 +1,9 @@
 package com.me.security.security.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.me.security.security.filter.TokenAuthenticationFilter;
+import com.me.security.security.provider.ResourceAccessDeniedHandler;
+import com.me.security.security.provider.TokenAuthenticationEntryPoint;
 import com.me.security.security.provider.TokenAuthenticationProvider;
 import com.me.security.security.service.AccessAuthorizationService;
 import com.me.security.security.service.AuthenticationTokenVerifier;
@@ -12,14 +15,17 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -53,6 +59,10 @@ public class SpringSecurityConfig {
     @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("userAuthorizationService"))
     private AccessAuthorizationService authorizationService;
 
+    private final ObjectMapper objectMapper;
+
+    private final MessageSource messageSource;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -61,24 +71,9 @@ public class SpringSecurityConfig {
                 // 쿠키 기반이 아닌 JWT 기반이므로 사용하지 않음
                 .csrf(AbstractHttpConfigurer::disable)
                 // CORS 설정
-                .cors(c -> {
-                            CorsConfigurationSource source = request -> {
-                                // Cors 허용 패턴
-                                CorsConfiguration config = new CorsConfiguration();
-                                config.setAllowedOrigins(
-                                        List.of("*")
-                                );
-                                config.setAllowedMethods(
-                                        List.of("*")
-                                );
-                                return config;
-                            };
-                            c.configurationSource(source);
-                        }
-                )
+                .cors(this::corsConfiguration)
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
-                .sessionManagement(manager ->
-                        manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 // 조건별로 요청 허용/제한 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->
@@ -93,31 +88,36 @@ public class SpringSecurityConfig {
                 )
                 // 에러 핸들링
                 .exceptionHandling(manager -> manager
-                        .authenticationEntryPoint(new AuthenticationEntryPoint() {
-                            @Override
-                            public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-                                // 인증문제가 발생했을 때 이 부분을 호출한다.
-                                response.setStatus(401);
-                                response.setCharacterEncoding("utf-8");
-                                response.setContentType("text/html; charset=UTF-8");
-                                response.getWriter().write("인증되지 않은 사용자입니다.");
-                            }
-                        })
-                        .accessDeniedHandler(new AccessDeniedHandler() {
-                            @Override
-                            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException, IOException {
-                                // 권한 문제가 발생했을 때 이 부분을 호출한다.
-                                response.setStatus(403);
-                                response.setCharacterEncoding("utf-8");
-                                response.setContentType("text/html; charset=UTF-8");
-                                response.getWriter().write("권한이 없는 사용자입니다.");
-                            }
-                        })
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                        .accessDeniedHandler(accessDeniedHandler())
                 )
                 .authenticationProvider(new TokenAuthenticationProvider(verifyService, authorizationService))
                 .apply(new TokenFilterConfigurer());
 
         return http.build();
+    }
+
+    public void corsConfiguration(CorsConfigurer<HttpSecurity> corsCustomizer) {
+        CorsConfigurationSource source = request -> {
+            // Cors 허용 패턴
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedOrigins(
+                    List.of("*")
+            );
+            config.setAllowedMethods(
+                    List.of("*")
+            );
+            return config;
+        };
+        corsCustomizer.configurationSource(source);
+    }
+
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return new TokenAuthenticationEntryPoint(objectMapper, messageSource);
+    }
+
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new ResourceAccessDeniedHandler(objectMapper, messageSource);
     }
 
     @Bean
@@ -136,9 +136,8 @@ public class SpringSecurityConfig {
         @Override
         public void configure(HttpSecurity http) {
             AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-            http
-                    // JWT 인증 필터 적용
-                    .addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
+            // JWT 인증 필터 적용
+            http.addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
         }
     }
 }
