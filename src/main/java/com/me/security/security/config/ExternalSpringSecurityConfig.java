@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
@@ -35,20 +36,12 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
-public class SpringSecurityConfig {
+public class ExternalSpringSecurityConfig {
 
-    private static final String LOGIN_PROCESSING_URL = "/api/v1/sign/signin";
-
-    private static final String SIGN_UP_PROCESSING_URL = "/api/v1/sign/signup";
-
-    @Value("${spring.security.debug:false}")
-    boolean webSecurityDebug;
-
-
-    @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("jwtAuthenticationTokenVerifier"))
+    @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("reservedAuthenticationTokenVerifier"))
     private AuthenticationTokenVerifier verifyService;
 
-    @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("userAuthorizationService"))
+    @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("reservedAccessAuthorizationService"))
     private AccessAuthorizationService authorizationService;
 
     private final ObjectMapper objectMapper;
@@ -56,8 +49,8 @@ public class SpringSecurityConfig {
     private final MessageSource messageSource;
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Order(2)
+    public SecurityFilterChain externalFilterChain(HttpSecurity http) throws Exception {
         http
                 // ID, Password 문자열을 Base64로 인코딩하여 전달하는 구조
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -72,12 +65,12 @@ public class SpringSecurityConfig {
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
                             // 회원가입과 로그인은 모두 승인
-                            .requestMatchers(LOGIN_PROCESSING_URL, SIGN_UP_PROCESSING_URL).permitAll()
-                                .requestMatchers("/api/**").authenticated()
+//                            .requestMatchers(LOGIN_PROCESSING_URL, SIGN_UP_PROCESSING_URL).permitAll()
                             // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저에게만 허용
 //                                .requestMatchers("/admin/**").hasRole("ADMIN")
                             // /user 로 시작하는 요청은 USER 권한이 있는 유저에게만 허용
 //                                .requestMatchers("/user/**").hasRole("USER")
+                                .requestMatchers("/external/api/**").authenticated()
                             .anyRequest().authenticated()
                 )
                 // 에러 핸들링
@@ -112,13 +105,6 @@ public class SpringSecurityConfig {
 
     public AccessDeniedHandler accessDeniedHandler() {
         return new ResourceAccessDeniedHandler(objectMapper, messageSource);
-    }
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.debug(webSecurityDebug);
-//                .ignoring()
-//                    .requestMatchers("/swagger-ui");
     }
 
     @Bean
