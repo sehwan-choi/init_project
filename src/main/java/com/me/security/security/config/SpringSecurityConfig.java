@@ -56,7 +56,7 @@ public class SpringSecurityConfig {
     private final MessageSource messageSource;
 
     @Bean
-    @Order(1)
+    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // ID, Password 문자열을 Base64로 인코딩하여 전달하는 구조
@@ -68,12 +68,13 @@ public class SpringSecurityConfig {
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .securityMatcher("/api/**")
                 // 조건별로 요청 허용/제한 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
                             // 회원가입과 로그인은 모두 승인
                             .requestMatchers(LOGIN_PROCESSING_URL, SIGN_UP_PROCESSING_URL).permitAll()
-                                .requestMatchers("/api/**").authenticated()
+                                .requestMatchers("/test/**").permitAll()
                             // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저에게만 허용
 //                                .requestMatchers("/admin/**").hasRole("ADMIN")
                             // /user 로 시작하는 요청은 USER 권한이 있는 유저에게만 허용

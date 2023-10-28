@@ -9,11 +9,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/external/api/v1/key")
+@RequestMapping("/api/v1/key")
 @RequiredArgsConstructor
 public class ExternalKeyController {
 
     private final KeyManagementService managementService;
+
     @PostMapping
     public KeyRegistrationResponse keyAdd(@Valid @RequestBody KeyRegistrationRequest request) {
         return managementService.keyRegistration(request);

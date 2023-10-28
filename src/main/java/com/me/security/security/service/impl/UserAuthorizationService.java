@@ -30,7 +30,7 @@ public class UserAuthorizationService implements AccessAuthorizationService {
                     .roles(user.getRoles().stream().map(UserAuthority::getAuthority).collect(Collectors.toList()))
                     .build();
         } catch (UserNotFoundException e) {
-            throw new ClientNotFountAuthenticationException("user Id \"" + id + "\" not found!");
+            throw new ClientNotFountAuthenticationException("user Id \"" + id + "\" not found!", e);
         }
     }
 }

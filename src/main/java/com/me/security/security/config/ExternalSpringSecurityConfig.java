@@ -49,7 +49,7 @@ public class ExternalSpringSecurityConfig {
     private final MessageSource messageSource;
 
     @Bean
-    @Order(2)
+    @Order(1)
     public SecurityFilterChain externalFilterChain(HttpSecurity http) throws Exception {
         http
                 // ID, Password 문자열을 Base64로 인코딩하여 전달하는 구조
@@ -61,6 +61,7 @@ public class ExternalSpringSecurityConfig {
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .securityMatcher("/external/api/**")
                 // 조건별로 요청 허용/제한 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests

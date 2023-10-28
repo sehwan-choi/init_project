@@ -4,6 +4,6 @@ public record ReservedVerifyResult(Long id) implements VerifyResult{
 
     @Override
     public Long getId() {
-        return null;
+        return this.id;
     }
 }
