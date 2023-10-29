@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class SelectUserQueryService implements UserQueryService{
@@ -14,13 +16,23 @@ public class SelectUserQueryService implements UserQueryService{
     private final UserRepository userRepository;
     @Override
     @Transactional(readOnly = true)
-    public User findUserById(Long id) {
-        return userRepository.findUserById(id).orElseThrow(() -> new UserNotFoundException(id));
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findUserById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public User findUserByEmail(String email) {
+    public Optional<User> findUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public User findUserByIdIfNoOptional(Long id) {
+        return userRepository.findUserById(id).orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    @Override
+    public User findUserByEmailIfNoOptional(String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 }

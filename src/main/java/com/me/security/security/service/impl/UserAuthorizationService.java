@@ -4,7 +4,7 @@ import com.me.security.member.domain.User;
 import com.me.security.member.domain.UserAuthority;
 import com.me.security.member.exception.UserNotFoundException;
 import com.me.security.member.service.UserQueryService;
-import com.me.security.security.exception.ClientNotFountAuthenticationException;
+import com.me.security.security.exception.ClientNotFoundAuthenticationException;
 import com.me.security.security.model.ClientAuthInfo;
 import com.me.security.security.model.UserClientAuthInfo;
 import com.me.security.security.service.AccessAuthorizationService;
@@ -23,14 +23,14 @@ public class UserAuthorizationService implements AccessAuthorizationService {
     @Override
     public ClientAuthInfo getAccessClient(Long id) {
         try {
-            User user = userQueryService.findUserById(id);
+            User user = userQueryService.findUserByIdIfNoOptional(id);
             return UserClientAuthInfo.builder()
                     .userId(user.getId())
                     .userName(user.getName())
                     .roles(user.getRoles().stream().map(UserAuthority::getAuthority).collect(Collectors.toList()))
                     .build();
         } catch (UserNotFoundException e) {
-            throw new ClientNotFountAuthenticationException("user Id \"" + id + "\" not found!", e);
+            throw new ClientNotFoundAuthenticationException("user Id \"" + id + "\" not found!", e);
         }
     }
 }

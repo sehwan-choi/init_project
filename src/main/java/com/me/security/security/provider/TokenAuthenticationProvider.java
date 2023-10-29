@@ -1,7 +1,8 @@
 package com.me.security.security.provider;
 
 import com.me.security.security.exception.BadTokenAuthorizationException;
-import com.me.security.security.exception.ClientNotFountAuthenticationException;
+import com.me.security.security.exception.ClientNotFoundAuthenticationException;
+import com.me.security.security.exception.ClientStatusAuthenticationException;
 import com.me.security.security.model.AttemptAuthenticationToken;
 import com.me.security.security.model.ClientAuthInfo;
 import com.me.security.security.model.ClientAuthenticationToken;
@@ -39,8 +40,10 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
         try {
             ClientAuthInfo access = authorizationService.getAccessClient(clientId);
             return new ClientAuthenticationToken(access, accessToken);
-        } catch (ClientNotFountAuthenticationException e) {
+        } catch (ClientNotFoundAuthenticationException e) {
             throw new BadCredentialsException("Bad Credential Authorization! clientId : \"" + clientId + "\" accessToken : \"" + accessToken + "\"", e);
+        } catch (ClientStatusAuthenticationException e2) {
+            throw new BadCredentialsException("Bad Credential Authorization Token Expired! clientId : \"" + clientId + "\" accessToken : \"" + accessToken + "\"", e2);
         }
     }
 

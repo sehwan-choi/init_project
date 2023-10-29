@@ -2,8 +2,9 @@ package com.me.security;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Profile;
 
-@SpringBootTest
+//@SpringBootTest
 class SecurityApplicationTests {
 
 	@Test

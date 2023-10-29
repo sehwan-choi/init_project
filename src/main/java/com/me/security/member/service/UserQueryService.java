@@ -6,7 +6,11 @@ import java.util.Optional;
 
 public interface UserQueryService {
 
-    User findUserById(Long id);
+    Optional<User> findUserById(Long id);
 
-    User findUserByEmail(String email);
+    Optional<User> findUserByEmail(String email);
+
+    User findUserByIdIfNoOptional(Long id);
+
+    User findUserByEmailIfNoOptional(String email);
 }

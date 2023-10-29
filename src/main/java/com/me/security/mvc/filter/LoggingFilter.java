@@ -32,20 +32,23 @@ public class LoggingFilter extends OncePerRequestFilter {
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
-        MDC.put("request_id" , UUID.randomUUID().toString());
+        try {
+            MDC.put("request_id", UUID.randomUUID().toString());
 
-        log.debug("URI : " + request.getRequestURI());
-        log.debug("Method : " + request.getMethod());
-        printHeaders(request);
-        printQueryParameters(request);
-        printContentBody(requestWrapper.getContentAsByteArray(), "Request Body");
+            log.debug("URI : " + request.getRequestURI());
+            log.debug("Method : " + request.getMethod());
+            printHeaders(request);
+            printQueryParameters(request);
+            printContentBody(requestWrapper.getContentAsByteArray(), "Request Body");
 
-        filterChain.doFilter(requestWrapper, responseWrapper);
+            filterChain.doFilter(requestWrapper, responseWrapper);
 
-        printContentBody(responseWrapper.getContentAsByteArray(), "Response Body");
+            printContentBody(responseWrapper.getContentAsByteArray(), "Response Body");
 
-        responseWrapper.copyBodyToResponse();
-        MDC.clear();
+            responseWrapper.copyBodyToResponse();
+        } finally {
+            MDC.clear();
+        }
     }
 
     private void printHeaders(HttpServletRequest request) {

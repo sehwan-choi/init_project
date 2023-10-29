@@ -21,6 +21,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ExternalKey {
 
+    private static final Long KEY_DEFAULT_DURATION = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -52,9 +54,11 @@ public class ExternalKey {
         this.name = name;
         this.apiKey = keyGenerator.generate();
         this.block = false;
-        if (startDate == null) {
+        if (startDate == null || endDate == null) {
             setDefaultDate();
-        } else {
+        } else if (startDate.isAfter(endDate) || endDate.isBefore(startDate)) {
+            setDefaultDate();
+        }else {
             this.startDate = startDate;
             this.endDate = endDate;
         }
@@ -62,15 +66,13 @@ public class ExternalKey {
 
     public void setDefaultDate() {
         this.startDate = LocalDateTime.now();
-        this.endDate = LocalDateTime.now().plusDays(1);
+        this.endDate = LocalDateTime.now().plusDays(KEY_DEFAULT_DURATION);
     }
 
     public static ExternalKey createKeyFromRequest(KeyRegistrationRequest request, KeyGenerator keyGenerator) {
         String name = request.name();
 
-        return request.isDate() ?
-            new ExternalKey(name, request.startTime(), request.endTime(), keyGenerator) :
-            new ExternalKey(name, keyGenerator);
+        return new ExternalKey(name, request.startTime(), request.endTime(), keyGenerator);
     }
 
     public void block() {

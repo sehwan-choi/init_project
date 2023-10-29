@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ExternalKeyManagementService implements KeyManagementService{
 
-    private final ExternalKeyRepository keyRepository;
+    private final KeyQueryService keyQueryService;
+    private final KeyCommandService keyCommandService;
 
     @Qualifier("UUIDKeyGenerator")
     private final KeyGenerator keyGenerator;
@@ -22,14 +23,14 @@ public class ExternalKeyManagementService implements KeyManagementService{
     @Override
     public KeyRegistrationResponse keyRegistration(KeyRegistrationRequest request) {
         ExternalKey key = ExternalKey.createKeyFromRequest(request, keyGenerator);
-        ExternalKey externalKey = keyRepository.save(key);
+        ExternalKey externalKey = keyCommandService.save(key);
         return new KeyRegistrationResponse(externalKey.getCreatedAt(), externalKey.getApiKey());
     }
 
     @Override
     @Transactional
     public void keyDelete(String apiKey) {
-        ExternalKey key = keyRepository.findByApiKey(apiKey).orElseThrow(() -> new ApiKeyNotFoundException(apiKey));
+        ExternalKey key = keyQueryService.findByKey(apiKey).orElseThrow(() -> new ApiKeyNotFoundException(apiKey));
         key.block();
     }
 }

@@ -11,4 +11,6 @@ public final class ExceptionCommonCode {
     public static final String FORBIDDEN_ERROR = "error.forbidden";
     public static final String INTERNAL_SERVER_ERROR = "error.internal.server";
     public static final String BAD_REQUEST_ERROR = "error.invalid.data";
+
+    public static final String ACCESS_DENIED_ERROR = "error.denied";
 }

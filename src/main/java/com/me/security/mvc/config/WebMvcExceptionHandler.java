@@ -4,10 +4,16 @@ import com.me.security.common.dto.ErrorResponse;
 import com.me.security.common.exception.ExceptionCommonCode;
 import com.me.security.common.exception.InvalidDataException;
 import com.me.security.common.exception.ResourceNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.http.*;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -15,6 +21,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -59,7 +66,16 @@ public class WebMvcExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.error("handleExceptionInternal::" , ex);
         String path = ((ServletWebRequest) request).getRequest().getRequestURI();
-        if (status.equals(HttpStatus.BAD_REQUEST)) {
+         if (status.equals(HttpStatus.BAD_REQUEST)) {
+            if (ex instanceof MethodArgumentNotValidException) {
+                MethodArgumentNotValidException notValidException = (MethodArgumentNotValidException) ex;
+                String error = notValidException.getBindingResult().getFieldErrors().stream().map(m -> m.getField() + " " + m.getDefaultMessage()).collect(Collectors.joining("\n"));
+                return new ResponseEntity<>(new ErrorResponse(LocalDateTime.now(), error, path), headers, HttpStatus.BAD_REQUEST);
+            } else if (ex instanceof HttpMessageNotReadableException) {
+                HttpMessageNotReadableException notReadableException = (HttpMessageNotReadableException) ex;
+                String message = getLastMessage(notReadableException);
+                return new ResponseEntity<>(new ErrorResponse(LocalDateTime.now(), message, path), headers, HttpStatus.BAD_REQUEST);
+            }
             String message = messageSource.getMessage(ExceptionCommonCode.BAD_REQUEST_ERROR, null, request.getLocale());
             return new ResponseEntity<>(new ErrorResponse(LocalDateTime.now(), message,path), headers, HttpStatus.BAD_REQUEST);
         } else if(status.equals(HttpStatus.NOT_FOUND)) {
@@ -72,6 +88,21 @@ public class WebMvcExceptionHandler extends ResponseEntityExceptionHandler {
 
         ResponseEntity<Object> objectResponseEntity = super.handleExceptionInternal(ex, body, headers, status, request);
         return convertResponseEntity(objectResponseEntity, headers, status, request);
+    }
+
+    private String getLastMessage(Exception e) {
+        Throwable lastCause = getLastCause(e);
+        return lastCause.getMessage().split("\n")[0];
+    }
+
+    private Throwable getLastCause(Exception e) {
+        Throwable th = e.getCause();
+        while (true) {
+            if (th.getCause() == null) {
+                return th;
+            }
+            th = th.getCause();
+        }
     }
 
     private ResponseEntity<Object> convertResponseEntity(ResponseEntity<Object> objectResponseEntity, HttpHeaders headers, HttpStatusCode status, WebRequest request) {

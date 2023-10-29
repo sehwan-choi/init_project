@@ -11,9 +11,9 @@ public interface KeyQueryService {
 
     Optional<ExternalKey> findByKey(String key);
 
-    ExternalKey findByKeyIfOptional(String key);
+    ExternalKey findByKeyIfNoOptional(String key);
 
     Optional<ExternalKey> findById(Long id);
 
-    ExternalKey findByIdIfOptional(Long id);
+    ExternalKey findByIdIfNoOptional(Long id);
 }

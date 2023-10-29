@@ -5,12 +5,15 @@ import com.me.security.member.dto.LoginRequest;
 import com.me.security.member.dto.LoginSuccessResponse;
 import com.me.security.member.dto.UserCreateRequest;
 import com.me.security.member.dto.UserCreateResponse;
+import com.me.security.member.exception.UserEmailDuplicateException;
 import com.me.security.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +30,7 @@ public class UserSignService implements SignService {
     @Override
     @Transactional(readOnly = true)
     public LoginSuccessResponse login(LoginRequest request) {
-        User user = userQueryService.findUserByEmail(request.email());
+        User user = userQueryService.findUserByEmailIfNoOptional(request.email());
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new BadCredentialsException("Input password does not match stored password");
         }

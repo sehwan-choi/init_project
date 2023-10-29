@@ -6,11 +6,11 @@ public class InvalidDataException extends SourceRootException{
         super(ExceptionCommonCode.BAD_REQUEST_ERROR);
     }
 
-    public InvalidDataException(String code, String... args) {
+    public InvalidDataException(String code, Object... args) {
         super(code, args);
     }
 
-    public InvalidDataException(Throwable cause, String code, String... args) {
+    public InvalidDataException(Throwable cause, String code, Object... args) {
         super(cause, code, args);
     }
 }

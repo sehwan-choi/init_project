@@ -27,7 +27,7 @@ public class KeySelectQueryService implements KeyQueryService {
     }
 
     @Override
-    public ExternalKey findByKeyIfOptional(String key) {
+    public ExternalKey findByKeyIfNoOptional(String key) {
         return keyRepository.findByApiKey(key).orElseThrow(() -> new ApiKeyNotFoundException(key));
     }
 
@@ -37,7 +37,7 @@ public class KeySelectQueryService implements KeyQueryService {
     }
 
     @Override
-    public ExternalKey findByIdIfOptional(Long id) {
+    public ExternalKey findByIdIfNoOptional(Long id) {
         return keyRepository.findById(id).orElseThrow(() -> new ApiKeyNotFoundException(id));
     }
 }
