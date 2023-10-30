@@ -28,7 +28,6 @@ public class InMemoryExternalKeyStorage implements ExternalKeyStorage {
     @Override
     public void reload() {
         load();
-
     }
 
     @Override

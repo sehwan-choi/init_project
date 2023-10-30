@@ -1,6 +1,7 @@
 package com.me.security.mvc.config;
 
 import com.me.security.common.dto.ErrorResponse;
+import com.me.security.common.exception.AccessDeniedException;
 import com.me.security.common.exception.ExceptionCommonCode;
 import com.me.security.common.exception.InvalidDataException;
 import com.me.security.common.exception.ResourceNotFoundException;
@@ -46,6 +47,10 @@ public class WebMvcExceptionHandler extends ResponseEntityExceptionHandler {
         } else if (ex instanceof InvalidDataException) {
             InvalidDataException invalidDataException = ((InvalidDataException) ex);
             String message = messageSource.getMessage(invalidDataException.getCode(), invalidDataException.getArgs(), request.getLocale());
+            return new ResponseEntity<>(new ErrorResponse(LocalDateTime.now(), message, path), HttpStatus.BAD_REQUEST);
+        } else if (ex instanceof AccessDeniedException) {
+            AccessDeniedException accessDeniedException = ((AccessDeniedException) ex);
+            String message = messageSource.getMessage(accessDeniedException.getCode(), accessDeniedException.getArgs(), request.getLocale());
             return new ResponseEntity<>(new ErrorResponse(LocalDateTime.now(), message, path), HttpStatus.BAD_REQUEST);
         }
 //        else if (ex instanceof TokenException) {

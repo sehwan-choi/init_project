@@ -1,11 +1,11 @@
 package com.me.security.security.filter;
 
-import com.me.security.security.exception.BadTokenAuthorizationException;
 import com.me.security.security.model.AttemptAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -19,6 +19,9 @@ import java.util.Optional;
 @Slf4j
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private static final String TOKEN_AUTHORIZATION_HEADER_NAME = "Authorization";
+
+    @Setter
+    private String tokenAuthorizationHeaderName = TOKEN_AUTHORIZATION_HEADER_NAME;
 
     private final AuthenticationManager authenticationManager;
 
@@ -50,6 +53,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private Optional<String> obtainToken(HttpServletRequest request) {
-        return Optional.ofNullable(request.getHeader(TOKEN_AUTHORIZATION_HEADER_NAME));
+        return Optional.ofNullable(request.getHeader(tokenAuthorizationHeaderName));
     }
 }

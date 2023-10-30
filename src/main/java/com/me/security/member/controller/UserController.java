@@ -19,10 +19,10 @@ public class UserController {
 
     private final UserQueryService userQueryService;
 
-    @GetMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public UserFindResponse getUser(@PathVariable(name = "userId") Long userId) {
-        User user = userQueryService.findUserByIdIfNoOptional(userId);
+    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public UserFindResponse getUser() {
         ClientAuthenticationToken authentication = (ClientAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        User user = userQueryService.findUserByIdIfNoOptional(authentication.getAuthInfo().getId());
         return UserFindResponse.userToResponse(user);
     }
 }
