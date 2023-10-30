@@ -7,9 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -29,16 +29,17 @@ import java.util.UUID;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class LoggingFilter extends OncePerRequestFilter {
 
-    private final List<String> excludePath = new ArrayList<>();
+    private final List<AntPathRequestMatcher> excludePath = new ArrayList<>();
 
     @PostConstruct
     public void init() {
-        excludePath.add("/actuator");
+        excludePath.add(new AntPathRequestMatcher("/actuator*"));
+        excludePath.add(new AntPathRequestMatcher("/actuator/*"));
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return excludePath.stream().anyMatch(f -> request.getRequestURI().startsWith(f));
+        return excludePath.stream().anyMatch(f -> f.matches(request));
     }
 
     @Override

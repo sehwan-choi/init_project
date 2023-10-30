@@ -1,13 +1,11 @@
 package com.me.security.security.jwt;
 
 import com.me.security.member.domain.Authority;
-import com.me.security.member.domain.UserAuthority;
-import com.me.security.security.service.TokenValidationService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,26 +14,32 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
-@Component
-@RequiredArgsConstructor
 @Slf4j
+@Component
 public class JwtProvider implements JwtService {
 
     private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
 
     private static final String AUTHORIZATION_PREFIX_NAME = "bearer ";
 
-    @Value("${jwt.secret.key}")
-    private String salt;
+    @Setter
+    private String authorizationHeaderName = AUTHORIZATION_HEADER_NAME;
+
+    @Setter
+    private String authorizationPrefixName = AUTHORIZATION_PREFIX_NAME;
+
+    private final String salt;
 
     private Key secretKey;
 
     // 만료시간 : 1Hour
-    @Value("${jwt.secret.expired}")
-    private long exp;
+    private final long exp;
+
+    public JwtProvider(@Value("${jwt.secret.key}") String salt, @Value("${jwt.secret.expired}") long exp) {
+        this.salt = salt;
+        this.exp = exp;
+    }
 
     @PostConstruct
     protected void init() {
@@ -49,7 +53,7 @@ public class JwtProvider implements JwtService {
         claims.put("roles", roles);
         Date date = new Date();
         Date expiredDate = new Date(date.getTime() + exp);
-        return AUTHORIZATION_PREFIX_NAME + Jwts.builder()
+        return authorizationPrefixName + Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(date)
                 .setExpiration(expiredDate)
@@ -69,7 +73,7 @@ public class JwtProvider implements JwtService {
     }
 
     private String resolveToken(HttpServletRequest request) {
-        return request.getHeader(AUTHORIZATION_HEADER_NAME);
+        return request.getHeader(authorizationHeaderName);
     }
 
     @Override
@@ -93,7 +97,7 @@ public class JwtProvider implements JwtService {
     }
 
     private boolean checkJwtPrefix(String token) {
-        return token.substring(0, AUTHORIZATION_PREFIX_NAME.length()).equalsIgnoreCase(AUTHORIZATION_PREFIX_NAME);
+        return token.substring(0, authorizationPrefixName.length()).equalsIgnoreCase(authorizationPrefixName);
     }
 
     private String extractToken(String token) {
