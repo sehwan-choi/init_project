@@ -6,6 +6,8 @@ import com.me.security.externalkey.service.KeyQueryService;
 import com.me.security.security.service.ExternalKeyStorage;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -18,15 +20,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InMemoryExternalKeyStorage implements ExternalKeyStorage {
 
-    private Map<Long, ExternalKeyAttribute> storage = new ConcurrentHashMap<>();
+    private final Map<Long, ExternalKeyAttribute> storage = new ConcurrentHashMap<>();
     private final KeyQueryService queryService;
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void init() {
         load();
     }
     @Override
     public void reload() {
+        storage.clear();
         load();
     }
 
@@ -38,27 +41,32 @@ public class InMemoryExternalKeyStorage implements ExternalKeyStorage {
 
     @Override
     public ExternalKeyAttribute findByIdIfNoOptional(Long id) {
-        ExternalKeyAttribute externalKeyAttribute = getKeyById(id);
-        if (externalKeyAttribute != null) {
-            return externalKeyAttribute;
+        Optional<ExternalKeyAttribute> externalKeyAttribute = getKeyById(id);
+        if (externalKeyAttribute.isPresent()) {
+            return externalKeyAttribute.get();
         }
         throw new ApiKeyNotFoundException(id);
     }
 
-    private ExternalKeyAttribute getKeyById(Long id) {
+    @Override
+    public Optional<ExternalKeyAttribute> findById(Long id) {
+        return getKeyById(id);
+    }
+
+    private Optional<ExternalKeyAttribute> getKeyById(Long id) {
         ExternalKeyAttribute externalKeyAttribute = storage.get(id);
         if (externalKeyAttribute != null) {
-            return externalKeyAttribute;
+            return Optional.of(externalKeyAttribute);
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
     public Optional<ExternalKeyAttribute> findByKey(String token) {
-        return getKeyByTokenifOptional(token);
+        return getKeyByToken(token);
     }
 
-    private Optional<ExternalKeyAttribute> getKeyByTokenifOptional(String token) {
+    private Optional<ExternalKeyAttribute> getKeyByToken(String token) {
         return storage.values().stream().filter(f -> f.apiKey().equals(token)).findAny();
     }
 

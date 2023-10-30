@@ -12,5 +12,7 @@ public interface ExternalKeyStorage {
 
     ExternalKeyAttribute findByIdIfNoOptional(Long id);
 
+    Optional<ExternalKeyAttribute> findById(Long id);
+
     Optional<ExternalKeyAttribute> findByKey(String token);
 }
