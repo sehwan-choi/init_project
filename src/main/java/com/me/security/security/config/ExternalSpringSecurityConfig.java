@@ -29,8 +29,11 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.List;
 
@@ -50,7 +53,7 @@ public class ExternalSpringSecurityConfig {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain externalFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain externalFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception {
         http
                 // ID, Password 문자열을 Base64로 인코딩하여 전달하는 구조
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -61,7 +64,7 @@ public class ExternalSpringSecurityConfig {
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .securityMatcher("/external/api/**")
+                .securityMatcher(new MvcRequestMatcher(introspector,"/external/api/**"))
                 // 조건별로 요청 허용/제한 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
@@ -71,7 +74,7 @@ public class ExternalSpringSecurityConfig {
 //                                .requestMatchers("/admin/**").hasRole("ADMIN")
                             // /user 로 시작하는 요청은 USER 권한이 있는 유저에게만 허용
 //                                .requestMatchers("/user/**").hasRole("USER")
-                                .requestMatchers("/external/api/**").authenticated()
+                                .requestMatchers(new MvcRequestMatcher(introspector,"/external/api/**")).authenticated()
                             .anyRequest().authenticated()
                 )
                 // 에러 핸들링
