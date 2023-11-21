@@ -1,10 +1,10 @@
 package com.me.security.externalkey.service;
 
+import com.me.security.common.generator.KeyGenerator;
 import com.me.security.externalkey.domain.ExternalKey;
 import com.me.security.externalkey.dto.KeyRegistrationRequest;
 import com.me.security.externalkey.dto.KeyRegistrationResponse;
 import com.me.security.externalkey.exception.ApiKeyNotFoundException;
-import com.me.security.externalkey.repository.ExternalKeyRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,7 +17,7 @@ public class ExternalKeyManagementService implements KeyManagementService{
     private final KeyQueryService keyQueryService;
     private final KeyCommandService keyCommandService;
 
-    @Qualifier("UUIDKeyGenerator")
+    @Qualifier("externalKeyGenerator")
     private final KeyGenerator keyGenerator;
 
     @Override

@@ -1,4 +1,4 @@
-package com.me.security.externalkey.service;
+package com.me.security.common.generator;
 
 public interface KeyGenerator {
 

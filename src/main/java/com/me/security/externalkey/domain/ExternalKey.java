@@ -1,7 +1,7 @@
 package com.me.security.externalkey.domain;
 
+import com.me.security.common.generator.KeyGenerator;
 import com.me.security.externalkey.dto.KeyRegistrationRequest;
-import com.me.security.externalkey.service.KeyGenerator;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

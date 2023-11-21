@@ -1,5 +1,6 @@
 package com.me.security.externalkey.service;
 
+import com.me.security.common.generator.UUIDKeyGenerator;
 import com.me.security.externalkey.domain.ExternalKey;
 import com.me.security.externalkey.dto.KeyRegistrationRequest;
 import com.me.security.externalkey.dto.KeyRegistrationResponse;
@@ -7,11 +8,9 @@ import com.me.security.externalkey.exception.ApiKeyNotFoundException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ExternalKeyManagementServiceTest {

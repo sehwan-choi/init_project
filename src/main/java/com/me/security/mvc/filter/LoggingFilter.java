@@ -1,10 +1,13 @@
 package com.me.security.mvc.filter;
 
+import com.me.security.common.generator.KeyGenerator;
+import com.me.security.mvc.domain.MDCKey;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -19,12 +22,14 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
+@RequiredArgsConstructor
 public class LoggingFilter extends OncePerRequestFilter {
 
     private final List<AntPathRequestMatcher> excludePath = new ArrayList<>();
+
+    private final KeyGenerator keyGenerator;
 
     @PostConstruct
     public void init() {
@@ -45,7 +50,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
         try {
-            MDC.put("request_id", UUID.randomUUID().toString());
+            MDC.put(MDCKey.TRX_ID.getKey(), keyGenerator.generate());
 
             log.debug("URI : " + requestWrapper.getRequestURI());
             log.debug("Method : " + requestWrapper.getMethod());

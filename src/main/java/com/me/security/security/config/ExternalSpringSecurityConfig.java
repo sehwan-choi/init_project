@@ -1,6 +1,7 @@
 package com.me.security.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.me.security.common.generator.KeyGenerator;
 import com.me.security.mvc.filter.LoggingFilter;
 import com.me.security.security.filter.TokenAuthenticationFilter;
 import com.me.security.security.provider.ResourceAccessDeniedHandler;
@@ -12,15 +13,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -32,7 +30,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
@@ -52,6 +49,9 @@ public class ExternalSpringSecurityConfig {
     private final ObjectMapper objectMapper;
 
     private final MessageSource messageSource;
+
+    @Qualifier("logKeyGenerator")
+    private final KeyGenerator keyGenerator;
 
     @Bean
     @Order(1)
@@ -85,6 +85,7 @@ public class ExternalSpringSecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler())
                 )
                 .authenticationProvider(new TokenAuthenticationProvider(verifyService, authorizationService))
+                .addFilterBefore(new LoggingFilter(keyGenerator), CsrfFilter.class)
                 .apply(new TokenFilterConfigurer());
 
         return http.build();
@@ -124,7 +125,6 @@ public class ExternalSpringSecurityConfig {
             AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
             // JWT 인증 필터 적용
             http.addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
-            http.addFilterBefore(new LoggingFilter(), CsrfFilter.class);
         }
     }
 }

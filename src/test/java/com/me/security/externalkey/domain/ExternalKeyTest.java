@@ -1,6 +1,6 @@
 package com.me.security.externalkey.domain;
 
-import com.me.security.externalkey.service.UUIDKeyGenerator;
+import com.me.security.common.generator.UUIDKeyGenerator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 class ExternalKeyTest {
 
