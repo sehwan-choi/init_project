@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @SpringBootTest
@@ -27,5 +29,15 @@ public class FeignTest {
     void test2() {
         List<Object> posts = testFeign.getPosts();
         System.out.println("posts = " + posts);
+    }
+
+    @Test
+    void test3() {
+        testFeign.getComment(LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    @Test
+    void test4() {
+        testFeign.getComment(LocalDate.now(), LocalDate.now());
     }
 }

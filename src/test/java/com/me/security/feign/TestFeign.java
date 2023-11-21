@@ -4,7 +4,10 @@ import com.me.security.feign.config.FeignConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @FeignClient(name = "testFeign", url = "https://jsonplaceholder.typicode.com", configuration = FeignConfiguration.class)
@@ -21,4 +24,10 @@ public interface TestFeign {
 
     @GetMapping("/comments/{id}")
     Object getComment(@PathVariable int id);
+
+    @GetMapping
+    Object getComment(@RequestParam LocalDateTime startTime, @RequestParam LocalDateTime endTime);
+
+    @GetMapping
+    Object getComment(@RequestParam LocalDate startTime, @RequestParam LocalDate endTime);
 }

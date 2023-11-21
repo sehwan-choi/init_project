@@ -20,10 +20,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.FeignFormatterRegistrar;
 import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
 import org.springframework.cloud.openfeign.support.SpringDecoder;
 import org.springframework.cloud.openfeign.support.SpringEncoder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import java.time.LocalDate;
@@ -69,6 +71,23 @@ public class FeignConfiguration {
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(List.of(jackson2HttpMessageConverter));
 
         return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
+    }
+
+    /**
+     * @RequestParam에 LocalDateTime, LocalDate, LocalTime 사용시
+     * startDate=20.%209.%2030.&endDate=20.%2010.%201. 와같이 API 요청하게 되기때문에 아래와 같이 타임포맷을 설정한다.
+     * @return
+     */
+    @Bean
+    public  FeignFormatterRegistrar localDateFeignFormatterRegister() {
+        return registry -> {
+            DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+//            registrar.setUseIsoFormat(true);
+            registrar.setDateFormatter(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            registrar.setTimeFormatter(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            registrar.setDateTimeFormatter(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            registrar.registerFormatters(registry);
+        };
     }
 
     public ObjectMapper clientObjectMapper() {
