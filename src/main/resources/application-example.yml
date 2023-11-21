@@ -41,3 +41,8 @@ jwt:
   secret:
     key: # JWT Salt Key
     expired: 3600000
+
+feign:
+  url: https://jsonplaceholder.typicode.com/
+  auth:
+    key: testkey

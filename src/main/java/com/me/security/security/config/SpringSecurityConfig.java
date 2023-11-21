@@ -1,6 +1,7 @@
 package com.me.security.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.me.security.mvc.filter.LoggingFilter;
 import com.me.security.security.filter.TokenAuthenticationFilter;
 import com.me.security.security.provider.ResourceAccessDeniedHandler;
 import com.me.security.security.provider.TokenAuthenticationEntryPoint;
@@ -28,8 +29,12 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.List;
 
@@ -57,7 +62,7 @@ public class SpringSecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception {
         http
                 // ID, Password 문자열을 Base64로 인코딩하여 전달하는 구조
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -68,13 +73,14 @@ public class SpringSecurityConfig {
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .securityMatcher("/api/**")
+                .securityMatcher(new MvcRequestMatcher(introspector,"/api/**"))
                 // 조건별로 요청 허용/제한 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
                             // 회원가입과 로그인은 모두 승인
-                            .requestMatchers(LOGIN_PROCESSING_URL, SIGN_UP_PROCESSING_URL).permitAll()
-                                .requestMatchers("/test/**").permitAll()
+                            .requestMatchers(new MvcRequestMatcher(introspector,LOGIN_PROCESSING_URL), new MvcRequestMatcher(introspector,SIGN_UP_PROCESSING_URL)).permitAll()
+                                .requestMatchers(new MvcRequestMatcher(introspector, "/h2-console")).permitAll()
+                                .requestMatchers(new MvcRequestMatcher(introspector,"/test/**")).permitAll()
                             // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저에게만 허용
 //                                .requestMatchers("/admin/**").hasRole("ADMIN")
                             // /user 로 시작하는 요청은 USER 권한이 있는 유저에게만 허용
@@ -133,6 +139,7 @@ public class SpringSecurityConfig {
             AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
             // JWT 인증 필터 적용
             http.addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
+            http.addFilterBefore(new LoggingFilter(), CsrfFilter.class);
         }
     }
 }

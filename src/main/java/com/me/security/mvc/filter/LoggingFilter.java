@@ -7,10 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -25,8 +22,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 public class LoggingFilter extends OncePerRequestFilter {
 
     private final List<AntPathRequestMatcher> excludePath = new ArrayList<>();
@@ -35,6 +30,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     public void init() {
         excludePath.add(new AntPathRequestMatcher("/actuator*"));
         excludePath.add(new AntPathRequestMatcher("/actuator/*"));
+        excludePath.add(new AntPathRequestMatcher("//h2-console/*"));
     }
 
     @Override
@@ -51,10 +47,10 @@ public class LoggingFilter extends OncePerRequestFilter {
         try {
             MDC.put("request_id", UUID.randomUUID().toString());
 
-            log.debug("URI : " + request.getRequestURI());
-            log.debug("Method : " + request.getMethod());
-            printHeaders(request);
-            printQueryParameters(request);
+            log.debug("URI : " + requestWrapper.getRequestURI());
+            log.debug("Method : " + requestWrapper.getMethod());
+            printHeaders(requestWrapper);
+            printQueryParameters(requestWrapper);
             printContentBody(requestWrapper.getContentAsByteArray(), "Request Body");
 
             filterChain.doFilter(requestWrapper, responseWrapper);
