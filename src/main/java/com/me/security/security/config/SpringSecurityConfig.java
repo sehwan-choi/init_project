@@ -1,6 +1,7 @@
 package com.me.security.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.me.security.mvc.filter.LoggingFilter;
 import com.me.security.security.filter.TokenAuthenticationFilter;
 import com.me.security.security.provider.ResourceAccessDeniedHandler;
 import com.me.security.security.provider.TokenAuthenticationEntryPoint;
@@ -28,6 +29,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -137,6 +139,7 @@ public class SpringSecurityConfig {
             AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
             // JWT 인증 필터 적용
             http.addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
+            http.addFilterBefore(new LoggingFilter(), CsrfFilter.class);
         }
     }
 }
