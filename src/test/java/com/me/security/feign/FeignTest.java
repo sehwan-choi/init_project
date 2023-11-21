@@ -10,7 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import java.util.List;
 
 @SpringBootTest
-@SpringBootApplication( exclude = {DataSourceAutoConfiguration.class})
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @EnableFeignClients
 public class FeignTest {
 

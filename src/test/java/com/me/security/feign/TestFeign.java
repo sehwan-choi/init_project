@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "testFeign", url = "${feign.url}", configuration = FeignConfiguration.class)
+@FeignClient(name = "testFeign", url = "https://jsonplaceholder.typicode.com", configuration = FeignConfiguration.class)
 public interface TestFeign {
 
     @GetMapping("/posts")
