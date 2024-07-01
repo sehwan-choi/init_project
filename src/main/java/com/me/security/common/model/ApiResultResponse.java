@@ -42,10 +42,6 @@ public class ApiResultResponse<T> {
         return ApiResultResponse.ofResponse(code, message,null);
     }
 
-    public static <T> ApiResultResponse<T> error(String code, String message, T error) {
-        return ApiResultResponse.ofResponse(code, message, error);
-    }
-
     public static <T> ApiResultResponse<T> ofResponse(String code, String message, T data) {
         return ApiResultResponse.<T>builder()
                 .code(code)

@@ -2,17 +2,11 @@ package com.me.security.feign;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.me.security.common.dto.ErrorResponse;
-import com.me.security.feign.config.DefaultErrorDecoder;
-import com.me.security.feign.exception.FeignClientBadRequestException;
-import com.me.security.feign.exception.FeignClientInternalServerException;
-import com.me.security.feign.exception.FeignClientNotFoundException;
-import com.me.security.feign.exception.FeignClientUnknownException;
+import com.me.security.feign.config.DefaultClientErrorDecoder;
 import feign.Response;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -25,7 +19,7 @@ public class ErrorDecoderTest {
 
     ObjectMapper objectMapper = mock(ObjectMapper.class);
 
-    DefaultErrorDecoder decoder = new DefaultErrorDecoder(objectMapper);
+    DefaultClientErrorDecoder decoder = new DefaultClientErrorDecoder();
 
     Response response = mock(Response.class);
     Response.Body body = mock(Response.Body.class);
@@ -41,7 +35,6 @@ public class ErrorDecoderTest {
     void beforeEach() throws IOException {
         when(response.body()).thenReturn(body);
         when(body.asReader(Charset.defaultCharset())).thenReturn(reader);
-        when(objectMapper.readValue(reader, ErrorResponse.class)).thenReturn(errorResponse);
     }
 
     @Test

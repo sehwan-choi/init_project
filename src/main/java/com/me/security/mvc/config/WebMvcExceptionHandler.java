@@ -1,11 +1,11 @@
 package com.me.security.mvc.config;
 
 import com.me.security.common.code.ServerCode;
-import com.me.security.common.dto.ErrorResponse;
 import com.me.security.common.exception.InternalServerException;
 import com.me.security.common.exception.InvalidDataException;
 import com.me.security.common.exception.ResourceNotFoundException;
 import com.me.security.common.model.ApiResultResponse;
+import com.me.security.feign.exception.DefaultClientException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -23,8 +22,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RequiredArgsConstructor
 @Slf4j
 public class WebMvcExceptionHandler extends ResponseEntityExceptionHandler {
-
-    private static final String REQUEST_BODY_EMPTY_DEFAULT_MESSAGE = "Required request body is missing";
 
     private final MessageSource messageSource;
 
@@ -40,9 +37,10 @@ public class WebMvcExceptionHandler extends ResponseEntityExceptionHandler {
         ServerCode code = null;
         HttpStatus httpStatus = null;
 
-        String path = ((ServletWebRequest) request).getRequest().getRequestURI();
-
-        if (ex instanceof InvalidDataException invalidEx) {
+        if (ex instanceof DefaultClientException clientEx) {
+            httpStatus = clientEx.getCode().equals(ServerCode.BAD_REQUEST) ? HttpStatus.BAD_REQUEST : HttpStatus.INTERNAL_SERVER_ERROR;
+            code = clientEx.getCode();
+        } else if (ex instanceof InvalidDataException invalidEx) {
             httpStatus = HttpStatus.BAD_REQUEST;
             code = invalidEx.getCode();
         } else if (ex instanceof InternalServerException internalEx) {
@@ -52,7 +50,7 @@ public class WebMvcExceptionHandler extends ResponseEntityExceptionHandler {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
             code = ServerCode.INTERNAL_SERVER_ERROR;
         }
-        return new ResponseEntity<>(ApiResultResponse.error(code.getCode(), messageSource.getMessage(code.getMessageCode(), null, request.getLocale()), new ErrorResponse(path)), httpStatus);
+        return new ResponseEntity<>(ApiResultResponse.ofResponse(code.getCode(), messageSource.getMessage(code.getMessageCode(), null, request.getLocale())), httpStatus);
     }
 
     @Override

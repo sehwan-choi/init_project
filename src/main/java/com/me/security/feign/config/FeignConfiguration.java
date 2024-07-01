@@ -10,7 +10,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import com.me.security.feign.interceptor.DefaultFeignInterceptor;
 import feign.Logger;
 import feign.RequestInterceptor;
 import feign.codec.Decoder;
@@ -18,7 +17,6 @@ import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cloud.openfeign.FeignFormatterRegistrar;
 import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
@@ -28,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -37,41 +36,47 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FeignConfiguration {
 
-    @Value("${feign.auth.key}")
-    private String authorizationKey;
+    /**
+     * FeignClient encoder 설정
+     * @return
+     */
+    @Bean
+    public Encoder encoder() {
+        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter(clientObjectMapper());
+        messageConverter.setDefaultCharset(StandardCharsets.UTF_8);
+        ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(List.of(messageConverter));
+
+        return new SpringEncoder(objectFactory);
+    }
+
+    /**
+     * FeignClient decoder 설정
+     */
+    @Bean
+    public Decoder decoder() {
+        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter(clientObjectMapper());
+        messageConverter.setDefaultCharset(StandardCharsets.UTF_8);
+        ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(List.of(messageConverter));
+
+        return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
+    }
+
+    @Bean
+    public ErrorDecoder errorDecoder() {
+        return new DefaultClientErrorDecoder();
+    }
 
     @Bean
     public Logger.Level loggingLevel() {
         return Logger.Level.FULL;
     }
 
-    @Bean
-    public RequestInterceptor basicRequestInterceptor() {
-        DefaultFeignInterceptor basicFeignInterceptor = new DefaultFeignInterceptor();
-        basicFeignInterceptor.setAuthorizationKey(authorizationKey);
-        return basicFeignInterceptor;
-    }
 
     @Bean
-    public ErrorDecoder defaultErrorDecoder() {
-        return new DefaultErrorDecoder(clientObjectMapper());
+    public RequestInterceptor authorizeInterceptor() {
+        return new DefaultRequestHeaderInterceptor();
     }
 
-    @Bean
-    public Encoder encoder() {
-        MappingJackson2HttpMessageConverter jackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter(clientObjectMapper());
-        ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(List.of(jackson2HttpMessageConverter));
-
-        return new SpringEncoder(objectFactory);
-    }
-
-    @Bean
-    public Decoder decoder() {
-        MappingJackson2HttpMessageConverter jackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter(clientObjectMapper());
-        ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(List.of(jackson2HttpMessageConverter));
-
-        return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
-    }
 
     /**
      * @RequestParam에 LocalDateTime, LocalDate, LocalTime 사용시
