@@ -74,8 +74,7 @@ public class SpringSecurityConfig {
                 // CORS 설정
                 .cors(this::corsConfiguration)
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
-                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityMatcher(new MvcRequestMatcher(introspector,"/api/**"))
                 // 조건별로 요청 허용/제한 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->
@@ -96,8 +95,10 @@ public class SpringSecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler())
                 )
                 .authenticationProvider(new TokenAuthenticationProvider(verifyService, authorizationService))
-                .addFilterBefore(new LoggingFilter(keyGenerator), CsrfFilter.class)
-                .apply(new TokenFilterConfigurer());
+                .addFilterBefore(new LoggingFilter(keyGenerator), CsrfFilter.class);
+
+        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+        http.addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -135,14 +136,5 @@ public class SpringSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    public static class TokenFilterConfigurer extends AbstractHttpConfigurer<TokenFilterConfigurer, HttpSecurity> {
-        @Override
-        public void configure(HttpSecurity http) {
-            AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-            // JWT 인증 필터 적용
-            http.addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
-        }
     }
 }

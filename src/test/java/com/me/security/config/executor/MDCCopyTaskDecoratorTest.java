@@ -1,11 +1,10 @@
 package com.me.security.config.executor;
 
+import com.me.security.common.executor.MDCCopyTaskDecorator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class MDCCopyTaskDecoratorTest {
 

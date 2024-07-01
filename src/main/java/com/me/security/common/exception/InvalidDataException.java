@@ -1,16 +1,18 @@
 package com.me.security.common.exception;
 
+import com.me.security.common.code.ServerCode;
+
 public class InvalidDataException extends SourceRootException{
 
     public InvalidDataException() {
-        super(ExceptionCommonCode.BAD_REQUEST_ERROR);
+        super(ServerCode.BAD_REQUEST);
     }
 
-    public InvalidDataException(String code, Object... args) {
-        super(code, args);
+    public InvalidDataException(ServerCode code) {
+        super(code);
     }
 
-    public InvalidDataException(Throwable cause, String code, Object... args) {
-        super(cause, code, args);
+    public InvalidDataException(ServerCode code, String message) {
+        super(code, message);
     }
 }

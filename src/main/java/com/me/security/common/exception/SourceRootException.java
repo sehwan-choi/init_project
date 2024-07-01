@@ -1,23 +1,30 @@
 package com.me.security.common.exception;
 
+import com.me.security.common.code.ServerCode;
 import lombok.Getter;
 
-public class SourceRootException extends RuntimeException{
+public abstract class SourceRootException extends RuntimeException{
 
     @Getter
-    private final String code;
+    private final ServerCode code;
 
-    @Getter
-    private final Object[] args;
-
-    public SourceRootException(String code, Object... args) {
+    protected SourceRootException(ServerCode code) {
+        super(code.getMessageCode());
         this.code = code;
-        this.args = args;
     }
 
-    public SourceRootException(Throwable cause, String code, Object... args) {
-        super(cause);
+    protected SourceRootException(ServerCode code, Throwable cause) {
+        super(code.getCode(), cause);
         this.code = code;
-        this.args = args;
+    }
+
+    protected SourceRootException(ServerCode code, String message) {
+        super(message);
+        this.code = code;
+    }
+
+    protected SourceRootException(ServerCode code, String message, Throwable cause) {
+        super(message, cause);
+        this.code = code;
     }
 }

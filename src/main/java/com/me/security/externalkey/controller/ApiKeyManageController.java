@@ -4,7 +4,6 @@ import com.me.security.common.dto.SimpleResponse;
 import com.me.security.externalkey.dto.KeyRegistrationRequest;
 import com.me.security.externalkey.dto.KeyRegistrationResponse;
 import com.me.security.externalkey.service.KeyManagementService;
-import com.me.security.externalkey.service.KeyQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 public class ApiKeyManageController {
 
     private final KeyManagementService managementService;
-
-    private final KeyQueryService queryService;
 
     @PostMapping
     public KeyRegistrationResponse keyAdd(@Valid @RequestBody KeyRegistrationRequest request) {

@@ -1,15 +1,17 @@
 package com.me.security.common.exception;
 
+import com.me.security.common.code.ServerCode;
+
 public class ResourceNotFoundException extends SourceRootException{
 
     public ResourceNotFoundException() {
-        super(ExceptionCommonCode.RESOURCE_NOT_FOUND_ERROR);
+        super(ServerCode.NOT_FOUND);
     }
-    public ResourceNotFoundException(String code, Object... args) {
-        super(code, args);
+    public ResourceNotFoundException(ServerCode code) {
+        super(code);
     }
 
-    public ResourceNotFoundException(Throwable cause, String code, Object... args) {
-        super(cause, code, args);
+    protected ResourceNotFoundException(ServerCode code, String message) {
+        super(code, message);
     }
 }

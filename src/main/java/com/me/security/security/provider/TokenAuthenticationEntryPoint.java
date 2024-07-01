@@ -1,7 +1,8 @@
 package com.me.security.security.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.me.security.common.dto.ErrorResponse;
+import com.me.security.common.code.ServerCode;
+import com.me.security.common.model.ApiResultResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,7 +16,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.time.LocalDateTime;
 
 public class TokenAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
@@ -35,7 +35,7 @@ public class TokenAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
         try (OutputStream outputStream = response.getOutputStream()) {
-            objectMapper.writeValue(outputStream, new ErrorResponse(LocalDateTime.now(), message, request.getRequestURI()));
+            objectMapper.writeValue(outputStream, ApiResultResponse.ofResponse(ServerCode.UNAUTHORIZED.getCode(), messageSource.getMessage(ServerCode.UNAUTHORIZED.getMessageCode(), null, request.getLocale())));
             outputStream.flush();
         }
     }

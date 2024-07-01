@@ -64,8 +64,7 @@ public class ExternalSpringSecurityConfig {
                 // CORS 설정
                 .cors(this::corsConfiguration)
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
-                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityMatcher(new MvcRequestMatcher(introspector,"/external/api/**"))
                 // 조건별로 요청 허용/제한 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->

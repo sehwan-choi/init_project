@@ -1,7 +1,9 @@
 package com.me.security.security.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.me.security.common.code.ServerCode;
 import com.me.security.common.dto.ErrorResponse;
+import com.me.security.common.model.ApiResultResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,7 +38,7 @@ public class ResourceAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpStatus.FORBIDDEN.value());
 
         try (OutputStream outputStream = response.getOutputStream()) {
-            objectMapper.writeValue(outputStream, new ErrorResponse(LocalDateTime.now(), message, request.getRequestURI()));
+            objectMapper.writeValue(outputStream, ApiResultResponse.ofResponse(ServerCode.FORBIDDEN.getCode(), messageSource.getMessage(ServerCode.FORBIDDEN.getMessageCode(), null, request.getLocale())));
             outputStream.flush();
         }
     }
