@@ -93,12 +93,10 @@ public class SpringSecurityConfig {
                 .exceptionHandling(manager -> manager
                         .authenticationEntryPoint(authenticationEntryPoint())
                         .accessDeniedHandler(accessDeniedHandler())
-                )
-                .authenticationProvider(new TokenAuthenticationProvider(verifyService, authorizationService))
-                .addFilterBefore(new LoggingFilter(keyGenerator), CsrfFilter.class);
+                );
 
-        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-        http.addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
+        http.apply(new TokenFilterConfigurer(new TokenAuthenticationProvider(verifyService, authorizationService),keyGenerator));
+
 
         return http.build();
     }
@@ -136,5 +134,25 @@ public class SpringSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    public static class TokenFilterConfigurer extends AbstractHttpConfigurer<TokenFilterConfigurer, HttpSecurity> {
+        private final TokenAuthenticationProvider tokenAuthenticationProvider;
+        private final KeyGenerator keyGenerator;
+
+        public TokenFilterConfigurer( TokenAuthenticationProvider tokenAuthenticationProvider,
+                                        KeyGenerator keyGenerator) {
+            this.tokenAuthenticationProvider = tokenAuthenticationProvider;
+            this.keyGenerator = keyGenerator;
+        }
+
+        @Override
+        public void configure(HttpSecurity http) throws Exception {
+            AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+            http
+                    .authenticationProvider(tokenAuthenticationProvider)
+                    .addFilterBefore(new LoggingFilter(keyGenerator), CsrfFilter.class)
+                    .addFilterBefore(new TokenAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
+        }
     }
 }
