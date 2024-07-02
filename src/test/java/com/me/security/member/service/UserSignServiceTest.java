@@ -2,7 +2,7 @@ package com.me.security.member.service;
 
 import com.me.security.member.domain.User;
 import com.me.security.member.dto.LoginRequest;
-import com.me.security.member.dto.LoginSuccessResponse;
+import com.me.security.member.dto.LoginResult;
 import com.me.security.member.dto.UserCreateRequest;
 import com.me.security.member.dto.UserCreateResponse;
 import com.me.security.security.jwt.JwtProvider;
@@ -10,13 +10,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserSignServiceTest {
@@ -49,7 +45,7 @@ class UserSignServiceTest {
             when(jwtProvider.createToken(any(), any())).thenReturn(JWT_TOKEN);
             when(passwordEncoder.matches(request.password(), PASSWORD)).thenReturn(true);
 
-            LoginSuccessResponse response = service.login(request);
+            LoginResult response = service.login(request);
             verify(passwordEncoder, times(1)).matches(request.password(), PASSWORD);
             Assertions.assertThat(response.token()).isEqualTo(JWT_TOKEN);
         }

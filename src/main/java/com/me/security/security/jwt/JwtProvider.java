@@ -21,7 +21,7 @@ public class JwtProvider implements JwtService {
 
     private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
 
-    private static final String AUTHORIZATION_PREFIX_NAME = "bearer ";
+    private static final String AUTHORIZATION_PREFIX_NAME = "Bearer ";
 
     @Setter
     private String authorizationHeaderName = AUTHORIZATION_HEADER_NAME;

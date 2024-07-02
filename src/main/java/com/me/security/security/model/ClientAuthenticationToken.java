@@ -18,6 +18,12 @@ public class ClientAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(true);
     }
 
+    public static ClientAuthenticationToken fail(String accessToken) {
+        ClientAuthenticationToken clientAuthenticationToken = new ClientAuthenticationToken(null, accessToken);
+        clientAuthenticationToken.setAuthenticated(false);
+        return clientAuthenticationToken;
+    }
+
     @Override
     public Object getCredentials() {
         return this.accessToken;

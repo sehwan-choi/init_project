@@ -11,6 +11,6 @@ public class UserNotFoundException extends ResourceNotFoundException {
     }
 
     public UserNotFoundException(String email) {
-        super(ServerCode.BAD_REQUEST, "User not Found! email : " + email);
+        super(ServerCode.USER_NOT_FOUND, "User not Found! email : " + email);
     }
 }

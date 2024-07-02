@@ -43,7 +43,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private void attemptAuthentication(String optionalToken) {
         try {
             Authentication authenticate = authenticationManager.authenticate(new AttemptAuthenticationToken(optionalToken));
-            SecurityContextHolder.setContext(new SecurityContextImpl(authenticate));
+            if (authenticate == null) {
+                SecurityContextHolder.clearContext();
+            } else {
+                SecurityContextHolder.setContext(new SecurityContextImpl(authenticate));
+            }
         } catch (Exception e) {
             log.warn("TokenAuthenticationFilter Exception", e);
             SecurityContextHolder.clearContext();

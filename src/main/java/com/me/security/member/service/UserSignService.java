@@ -2,18 +2,16 @@ package com.me.security.member.service;
 
 import com.me.security.member.domain.User;
 import com.me.security.member.dto.LoginRequest;
-import com.me.security.member.dto.LoginSuccessResponse;
+import com.me.security.member.dto.LoginResult;
 import com.me.security.member.dto.UserCreateRequest;
 import com.me.security.member.dto.UserCreateResponse;
-import com.me.security.member.exception.UserEmailDuplicateException;
+import com.me.security.member.exception.LoginException;
 import com.me.security.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +26,12 @@ public class UserSignService implements SignService {
     private final UserCommandService userCommandService;
 
     @Override
-    @Transactional(readOnly = true)
-    public LoginSuccessResponse login(LoginRequest request) {
+    public LoginResult login(LoginRequest request) {
         User user = userQueryService.findUserByEmailIfNoOptional(request.email());
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new BadCredentialsException("Input password does not match stored password");
+            throw new LoginException("password mismatch! userId : " + user.getId());
         }
-        return new LoginSuccessResponse(jwtProvider.createToken(String.valueOf(user.getId()), user.getAuthorities()));
+        return new LoginResult(jwtProvider.createToken(String.valueOf(user.getId()), user.getAuthorities()));
     }
 
     @Override

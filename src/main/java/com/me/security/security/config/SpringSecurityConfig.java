@@ -42,7 +42,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SpringSecurityConfig {
 
-    private static final String LOGIN_PROCESSING_URL = "/api/v1/sign/signin";
+    private static final String LOGIN_PROCESSING_URL = "/api/v1/sign/login";
 
     private static final String SIGN_UP_PROCESSING_URL = "/api/v1/sign/signup";
 
