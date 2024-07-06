@@ -4,7 +4,6 @@ import com.me.security.member.domain.Authority;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,12 +18,7 @@ import java.util.Date;
 @Component
 public class JwtProvider implements JwtService {
 
-    private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
-
     private static final String AUTHORIZATION_PREFIX_NAME = "Bearer ";
-
-    @Setter
-    private String authorizationHeaderName = AUTHORIZATION_HEADER_NAME;
 
     @Setter
     private String authorizationPrefixName = AUTHORIZATION_PREFIX_NAME;
@@ -63,7 +57,7 @@ public class JwtProvider implements JwtService {
 
     @Override
     public String getAccount(String token) {
-        String jwtToken = extractToken(token);
+        String jwtToken = getJwt(token);
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
@@ -72,48 +66,32 @@ public class JwtProvider implements JwtService {
                 .getSubject();
     }
 
-    private String resolveToken(HttpServletRequest request) {
-        return request.getHeader(authorizationHeaderName);
-    }
-
     @Override
     public boolean validateToken(String token) {
         try {
-            String bearerToken;
-            if (checkJwtPrefix(token)) {
-                bearerToken = extractToken(token);
-            } else {
-                return false;
-            }
-
-            return tokenIsExpired(bearerToken);
+            String jwt = getJwt(token);
+            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(jwt);
+            return true;
+        } catch (SecurityException | MalformedJwtException e) {
+            log.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
         } catch (ExpiredJwtException e) {
-            log.error("Jwt Token Expired!", e);
-            return false;
-        } catch (Exception e) {
-            log.error("Jwt Parsing Error", e);
-            return false;
+            log.error("Expired JWT token, 만료된 JWT token 입니다.");
+        } catch (UnsupportedJwtException e) {
+            log.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
+        } catch (IllegalArgumentException e) {
+            log.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
         }
+        return false;
     }
 
     private boolean checkJwtPrefix(String token) {
-        return token.substring(0, authorizationPrefixName.length()).equalsIgnoreCase(authorizationPrefixName);
+        return token.startsWith(authorizationPrefixName);
     }
 
-    private String extractToken(String token) {
-        return token.split(" ")[1].trim();
+    private String getJwt(String token) {
+        if (!checkJwtPrefix(token)) {
+            throw new MalformedJwtException("유효하지 않는 JWT Prefix 입니다.");
+        }
+        return token.substring(7);
     }
-
-    private boolean tokenIsExpired(String bearerToken) {
-        Jws<Claims> claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(bearerToken);
-
-        return !claims
-                .getBody()
-                .getExpiration()
-                .before(new Date());
-    }
-
 }
