@@ -29,13 +29,13 @@ public class TokenAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        String message = messageSource.getMessage("error.authorized", null, LocaleContextHolder.getLocale());
+        String message = messageSource.getMessage(ServerCode.UNAUTHORIZED.getMessageCode(), null, request.getLocale());
 
         response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
         try (OutputStream outputStream = response.getOutputStream()) {
-            objectMapper.writeValue(outputStream, ApiResultResponse.ofResponse(ServerCode.UNAUTHORIZED.getCode(), messageSource.getMessage(ServerCode.UNAUTHORIZED.getMessageCode(), null, request.getLocale())));
+            objectMapper.writeValue(outputStream, ApiResultResponse.ofResponse(ServerCode.UNAUTHORIZED.getCode(), message));
             outputStream.flush();
         }
     }

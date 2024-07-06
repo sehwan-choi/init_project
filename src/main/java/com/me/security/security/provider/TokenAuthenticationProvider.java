@@ -31,12 +31,9 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
         String accessToken = authenticationToken.getAccessToken();
 
         //User Token or Server Token 검증
-        Optional<VerifyResult> verify = verifyService.verify(accessToken);
-        if (verify.isEmpty()) {
-            throw new BadTokenAuthorizationException("The token is invalid. token : \"" + accessToken + "\"");
-        }
+        VerifyResult verify = verifyService.verify(accessToken).orElseThrow(() -> new BadTokenAuthorizationException("The token is invalid. token : \"" + accessToken + "\""));
 
-        Long clientId = verify.get().getId();
+        Long clientId = verify.getId();
         try {
             ClientAuthInfo access = authorizationService.getAccessClient(clientId);
             return new ClientAuthenticationToken(access, accessToken);

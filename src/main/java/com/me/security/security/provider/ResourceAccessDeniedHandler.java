@@ -32,13 +32,13 @@ public class ResourceAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        String message = messageSource.getMessage("error.forbidden", null, LocaleContextHolder.getLocale());
+        String message =  messageSource.getMessage(ServerCode.FORBIDDEN.getMessageCode(), null, request.getLocale());
 
         response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpStatus.FORBIDDEN.value());
 
         try (OutputStream outputStream = response.getOutputStream()) {
-            objectMapper.writeValue(outputStream, ApiResultResponse.ofResponse(ServerCode.FORBIDDEN.getCode(), messageSource.getMessage(ServerCode.FORBIDDEN.getMessageCode(), null, request.getLocale())));
+            objectMapper.writeValue(outputStream, ApiResultResponse.ofResponse(ServerCode.FORBIDDEN.getCode(), message));
             outputStream.flush();
         }
     }

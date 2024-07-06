@@ -31,11 +31,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         Optional<String> optionalToken = obtainToken(request);
-        if (optionalToken.isPresent()) {
-            attemptAuthentication(optionalToken.get());
-        } else {
-            SecurityContextHolder.clearContext();
-        }
+        optionalToken.ifPresentOrElse(this::attemptAuthentication, SecurityContextHolder::clearContext);
 
         filterChain.doFilter(request, response);
     }
@@ -43,11 +39,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private void attemptAuthentication(String optionalToken) {
         try {
             Authentication authenticate = authenticationManager.authenticate(new AttemptAuthenticationToken(optionalToken));
-            if (authenticate == null) {
-                SecurityContextHolder.clearContext();
-            } else {
-                SecurityContextHolder.setContext(new SecurityContextImpl(authenticate));
-            }
+            Optional.ofNullable(authenticate)
+                    .ifPresentOrElse(
+                            x -> SecurityContextHolder.setContext(new SecurityContextImpl(authenticate)),
+                            SecurityContextHolder::clearContext
+                    );
         } catch (Exception e) {
             log.warn("TokenAuthenticationFilter Exception", e);
             SecurityContextHolder.clearContext();

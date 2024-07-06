@@ -27,6 +27,7 @@ public class InMemoryExternalKeyStorage implements ExternalKeyStorage {
     public void init() {
         load();
     }
+
     @Override
     public void reload() {
         storage.clear();
@@ -41,11 +42,8 @@ public class InMemoryExternalKeyStorage implements ExternalKeyStorage {
 
     @Override
     public ExternalKeyAttribute findByIdIfNoOptional(Long id) {
-        Optional<ExternalKeyAttribute> externalKeyAttribute = getKeyById(id);
-        if (externalKeyAttribute.isPresent()) {
-            return externalKeyAttribute.get();
-        }
-        throw new ApiKeyNotFoundException(id);
+        return getKeyById(id)
+                .orElseThrow(() -> new ApiKeyNotFoundException(id));
     }
 
     @Override
