@@ -43,6 +43,11 @@ jwt:
     expired: 3600000
 
 feign:
-  url: https://jsonplaceholder.typicode.com/
+  url: https://jsonplaceholder.typicode.com
   auth:
     key: testkey
+
+
+common:
+  aes:
+    key: #암호화 키

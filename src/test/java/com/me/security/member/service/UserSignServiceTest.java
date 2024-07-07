@@ -5,6 +5,7 @@ import com.me.security.member.dto.LoginRequest;
 import com.me.security.member.dto.LoginResult;
 import com.me.security.member.dto.UserCreateRequest;
 import com.me.security.member.dto.UserCreateResponse;
+import com.me.security.member.exception.LoginException;
 import com.me.security.security.jwt.JwtProvider;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -58,7 +59,7 @@ class UserSignServiceTest {
             when(user.getPassword()).thenReturn(PASSWORD);
             when(passwordEncoder.matches(request.password(), PASSWORD)).thenReturn(false);
 
-            Assertions.assertThatThrownBy(() -> service.login(request)).isInstanceOf(BadCredentialsException.class);
+            Assertions.assertThatThrownBy(() -> service.login(request)).isInstanceOf(LoginException.class);
         }
     }
 

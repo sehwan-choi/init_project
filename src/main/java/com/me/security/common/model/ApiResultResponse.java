@@ -2,11 +2,8 @@ package com.me.security.common.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.me.security.common.code.ServerCode;
-import com.me.security.common.dto.ErrorResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @ToString

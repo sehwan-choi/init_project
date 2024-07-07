@@ -50,7 +50,8 @@ public class WebMvcExceptionHandler extends ResponseEntityExceptionHandler {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
             code = ServerCode.INTERNAL_SERVER_ERROR;
         }
-        return new ResponseEntity<>(ApiResultResponse.ofResponse(code.getCode(), messageSource.getMessage(code.getMessageCode(), null, request.getLocale())), httpStatus);
+        String message = messageSource.getMessage(code.getMessageCode(), null, request.getLocale());
+        return new ResponseEntity<>(ApiResultResponse.ofResponse(code.getCode(), message), httpStatus);
     }
 
     @Override
@@ -71,7 +72,7 @@ public class WebMvcExceptionHandler extends ResponseEntityExceptionHandler {
             code = ServerCode.INTERNAL_SERVER_ERROR;
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }
-
-        return new ResponseEntity<>(ApiResultResponse.ofResponse(code.getCode(), messageSource.getMessage(code.getMessageCode(), null, request.getLocale())), httpStatus);
+        String message = messageSource.getMessage(code.getMessageCode(), null, request.getLocale());
+        return new ResponseEntity<>(ApiResultResponse.ofResponse(code.getCode(), message), httpStatus);
     }
 }

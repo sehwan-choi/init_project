@@ -14,6 +14,7 @@ public enum ServerCode {
     SIGNUP_DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "0004", "code.duplicate.email"),
     API_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "0005", "code.not.found.api.key"),
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "0006", "code.not.found.user"),
+    KEY_GENERATION_FAIL(HttpStatus.BAD_REQUEST, "0007", "code.key.generation.fail"),
 
     //공통 코드
     SUCCESS(HttpStatus.OK, "0200", "code.success"),

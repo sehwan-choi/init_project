@@ -25,9 +25,9 @@ public interface TestFeign {
     @GetMapping("/comments/{id}")
     Object getComment(@PathVariable int id);
 
-    @GetMapping
+    @GetMapping("/comments")
     Object getComment(@RequestParam LocalDateTime startTime, @RequestParam LocalDateTime endTime);
 
-    @GetMapping
+    @GetMapping("/comments")
     Object getComment(@RequestParam LocalDate startTime, @RequestParam LocalDate endTime);
 }

@@ -29,7 +29,6 @@ class JwtProviderTest {
 
     @BeforeEach
     void beforeEach() {
-        provider.setAuthorizationHeaderName(authHeaderName);
         provider.setAuthorizationPrefixName(authPrefixName);
         provider.init();
     }
@@ -66,7 +65,6 @@ class JwtProviderTest {
     @DisplayName("토큰 검증 실패 토큰만료")
     void invalidToken() {
         JwtProvider provider = new JwtProvider(saltKey, 0);
-        provider.setAuthorizationHeaderName(authHeaderName);
         provider.setAuthorizationPrefixName(authPrefixName);
         provider.init();
 
